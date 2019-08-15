@@ -1,4 +1,4 @@
-const {factory:RouteIns }= require("../dist/route.js")
+const {factory:RouteIns }= require("..")
 
 async function add_attr(ctx,next){
     ctx.number = 1
