@@ -3,5 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "author": "rainboylvx",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build tsconfig.json",
+    "test": "DEBUG=koa-route-ex node test/index.js",
+    "build&&test": "npm run build && npm run test"
+  },
+  "dependencies": {
+    "debug": "^4.1.1",
+    "path-to-regexp": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5"
+  }
 }
