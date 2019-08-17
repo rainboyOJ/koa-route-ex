@@ -103,9 +103,9 @@ class route {
             matchMethod = true;
         else if (ctx.method === this.Method)
             matchMethod = true;
-        if (ctx.url === undefined)
+        if (ctx.path === undefined)
             matchUrl = true;
-        else if (this.url_regx.exec(ctx.url))
+        else if (this.url_regx.exec(ctx.path))
             matchUrl = true;
         return matchUrl && matchMethod;
     }

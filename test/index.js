@@ -42,7 +42,7 @@ var route_3 = RouteIns.create('/',na)
 
 var ctx = {
     method:'GET',
-    url:'/'
+    path:'/'
 }
 
 async function main(){
