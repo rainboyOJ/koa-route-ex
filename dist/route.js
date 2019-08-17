@@ -2,14 +2,50 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * @author rainboy
+ *
+ * ```typescript
+ * var RouteIns = require("koa-route-ex")
+ * asyn function foo(ctx,next){
+ *      ctx.number = 1
+ *      await next()
+ * }
+ * var ctx = {}
+ *
+ * RouteIns.container.register([foo],'std')
+ * var route = RouteIns.create(['std.foo'])
+ *
+ * await route.routes()(ctx)
+ * ```
+ * */
 const container_1 = __importDefault(require("./container"));
 const path_to_regexp_1 = __importDefault(require("path-to-regexp"));
 const debug_1 = __importDefault(require("debug"));
 const debug = debug_1.default('koa-route-ex');
+/**
+ * route class
+ * @author rainboy
+ * @param url_regx 要匹配的路径 '/problem?id=1'
+ * @param middles 中间件描述
+ * @param container 挂载的中间件容器
+ *
+ *
+ * ```typescript
+ *  var middles = [
+ *      'foo',
+ *      'std.foo_1',
+ *      {
+ *          name:foo_2,
+ *          namespace:'std',
+ *          argument:{foo:bar}
+ *      }
+ *  ]
+ * ```
+ * */
 class route {
     constructor(url_regx, middles, container) {
-        this.Method = 'POST'; //default
+        this.Method = 'GET'; //default
         this.url_regx = path_to_regexp_1.default(url_regx);
         this.Middles = middles;
         this.container = container;
@@ -63,9 +99,9 @@ class route {
     match(ctx) {
         let matchMethod = false;
         let matchUrl = false;
-        if (ctx.Method === undefined)
+        if (ctx.method === undefined)
             matchMethod = true;
-        else if (ctx.Method === this.Method)
+        else if (ctx.method === this.Method)
             matchMethod = true;
         if (ctx.url === undefined)
             matchUrl = true;
@@ -73,15 +109,18 @@ class route {
             matchUrl = true;
         return matchUrl && matchMethod;
     }
-    async routes(ctx, next) {
-        /** 1 if match */
-        if (this.match(ctx)) {
-            debug('match');
-            let com = this.compose();
-            await com(ctx, next);
-        }
-        else
-            return next();
+    routes() {
+        let self = this;
+        return async function (ctx, next) {
+            /** 1 if match */
+            if (self.match(ctx)) {
+                debug('match');
+                let com = self.compose();
+                await com(ctx, next);
+            }
+            else
+                return next();
+        };
     }
     /** 运行 */
     compose() {
@@ -112,9 +151,12 @@ class routeFactory {
     constructor() {
         this.container = new container_1.default();
     }
+    /** proxy */
+    register(list, namespace) {
+        this.container.register(list, namespace);
+    }
     create(url_regx, middles) {
         return new route(url_regx, middles, this.container);
     }
 }
-//export default route
-exports.factory = new routeFactory();
+module.exports = new routeFactory();

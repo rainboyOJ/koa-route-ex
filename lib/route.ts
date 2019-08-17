@@ -1,15 +1,51 @@
+/** 
+ * @author rainboy
+ *
+ * ```typescript
+ * var RouteIns = require("koa-route-ex")
+ * asyn function foo(ctx,next){
+ *      ctx.number = 1
+ *      await next()
+ * }
+ * var ctx = {}
+ *
+ * RouteIns.container.register([foo],'std')
+ * var route = RouteIns.create(['std.foo'])
+ *
+ * await route.routes()(ctx)
+ * ```
+ * */
 import container from './container'
 import pathToRegexp  from 'path-to-regexp'
 import Debug from 'debug'
-
 const debug = Debug('koa-route-ex')
-class route {
+/** 
+ * route class
+ * @author rainboy
+ * @param url_regx 要匹配的路径 '/problem?id=1'
+ * @param middles 中间件描述 
+ * @param container 挂载的中间件容器
+ *
+ *
+ * ```typescript
+ *  var middles = [
+ *      'foo',
+ *      'std.foo_1',
+ *      {
+ *          name:foo_2,
+ *          namespace:'std',
+ *          argument:{foo:bar}
+ *      }
+ *  ]
+ * ```
+ * */
+class route implements routeType{
     Middles:(string | Middleware_describe)[]
     container:containerType
     url_regx:RegExp
-    Method:string = 'POST' //default
+    Method:string = 'GET' //default
 
-    constructor(url_regx:string,middles:[],container:containerType) {
+    constructor(url_regx:string,middles:(string | Middleware_describe)[],container:containerType) {
 
         this.url_regx = pathToRegexp(url_regx)
         this.Middles = middles;
@@ -74,9 +110,9 @@ class route {
         let matchMethod = false
         let matchUrl = false
 
-        if( ctx.Method  === undefined)
+        if( ctx.method  === undefined)
             matchMethod = true;
-        else if(ctx.Method === this.Method)
+        else if(ctx.method === this.Method)
             matchMethod = true;
 
         if( ctx.url === undefined)
@@ -87,20 +123,23 @@ class route {
         return matchUrl && matchMethod
     }
 
-    async routes(ctx:any,next:Function){
-
-        /** 1 if match */
-        if(this.match(ctx)){
-            debug('match')
-            let com = this.compose()
-            await com(ctx,next)
+    routes(){
+        let self = this
+        return async function(ctx:any,next:Function){
+            /** 1 if match */
+            if(self.match(ctx)){
+                debug('match')
+                let com = self.compose()
+                await com(ctx,next)
+            }
+            else
+                return next()
         }
-        else
-            return next()
+
     }
 
     /** 运行 */
-    compose(){
+    compose():Function{
         let self = this
         return function(context:CTX,next:Function){
             let index = -1;
@@ -126,12 +165,17 @@ class route {
 
 }
 
-class routeFactory {
+class routeFactory implements routeFactoryType{
 
     container:containerType;
 
     constructor(){ 
         this.container = new container();
+    }
+
+    /** proxy */
+    register(list: Middleware_Function[] | Middleware_Function,namespace:string | undefined):void{
+        this.container.register(list, namespace);
     }
 
     create(url_regx:string,middles:[]){
@@ -140,6 +184,5 @@ class routeFactory {
 
 }
 
-//export default route
-export var factory = new routeFactory()
+export  = new routeFactory()
 

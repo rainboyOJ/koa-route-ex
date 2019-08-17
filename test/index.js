@@ -1,4 +1,4 @@
-const {factory:RouteIns }= require("..")
+const RouteIns = require("..")
 
 async function add_attr(ctx,next){
     ctx.number = 1
@@ -28,16 +28,20 @@ var middles = [
 ]
 
 
-console.log(RouteIns)
-RouteIns.container.register([add_attr,print_attr,add_one,add_some])
+RouteIns.register([add_attr,print_attr,add_one,add_some])
+RouteIns.register(add_one,'std')
 
 
 
 var route_1 = RouteIns.create('/not_match',middles)
 var route_2 = RouteIns.create('/',middles)
 
+var na = Array.from(middles)
+na.splice(2,0,'std.add_one')
+var route_3 = RouteIns.create('/',na)
+
 var ctx = {
-    method:'POST',
+    method:'GET',
     url:'/'
 }
 
@@ -46,7 +50,8 @@ async function main(){
     await route_1.routes(ctx,function(){
         console.log('===========no match===========')
     })
-    await route_2.routes(ctx,function(){})
+    await route_2.routes()(ctx,function(){})
+    await route_3.routes()(ctx,function(){})
 }
 
 main();
