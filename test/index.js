@@ -45,6 +45,13 @@ var ctx = {
     path:'/'
 }
 
+var ctx_params_path = {
+    method:'GET',
+    path:'/rainboy/1000'
+}
+
+var route_params = RouteIns.create('/:username/:id',middles)
+
 async function main(){
     console.log('===========start===========')
     await route_1.routes(ctx,function(){
@@ -52,6 +59,7 @@ async function main(){
     })
     await route_2.routes()(ctx,function(){})
     await route_3.routes()(ctx,function(){})
+    await route_params.routes()(ctx_params_path,function(){})
 }
 
 main();

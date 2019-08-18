@@ -1,3 +1,4 @@
+import {containerType,Middleware_Function} from '../index.d'
 /** Function容器 */
 class container implements containerType{
     container:Map<string,Function>

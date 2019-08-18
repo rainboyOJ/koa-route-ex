@@ -19,6 +19,9 @@ import container from './container'
 import pathToRegexp  from 'path-to-regexp'
 import Debug from 'debug'
 const debug = Debug('koa-route-ex')
+import {routeType,Middleware_describe,containerType,anyObj,CTX,routeFactoryType,Middleware_Function} from '../index.d'
+
+
 /** 
  * route class
  * @author rainboy
@@ -39,18 +42,21 @@ const debug = Debug('koa-route-ex')
  *  ]
  * ```
  * */
+
 class route implements routeType{
     Middles:(string | Middleware_describe)[]
     container:containerType
     url_regx:RegExp
+    path:string
     Method:string = 'GET' //default
+    paramNames:pathToRegexp.Key[]  = []
 
     constructor(url_regx:string,middles:(string | Middleware_describe)[],container:containerType) {
 
-        this.url_regx = pathToRegexp(url_regx)
+        this.path = url_regx
+        this.url_regx = pathToRegexp(url_regx,this.paramNames)
         this.Middles = middles;
         this.container = container;
-        
 
     }
     /** 设定 方法 use GET POST */
@@ -66,6 +72,54 @@ class route implements routeType{
             this.Middles.push(middles)
         }
     }
+
+    /** 
+     * @description 返回捕获的params数组
+     * @param path 待捕获的路径
+     * */
+    captures(path:string):string[] | null{
+        let match = path.match(this.url_regx)
+        if( match){
+            return match.slice(1)
+        }
+        return null
+    }
+
+
+    /**
+     * @description Safe decodeURIComponent, won't throw any error.
+     * If `decodeURIComponent` error happen, just return the original value.
+     *
+     * @param text text
+     * @returns  URL decode original string.
+     */
+
+    safeDecodeURIComponent(text:string):string {
+        try {
+            return decodeURIComponent(text);
+        } catch (e) {
+            return text;
+        }
+    }
+
+    params(path:string,existingParams:anyObj){
+        var captures = this.captures(path);
+        var params = existingParams || {}
+
+        if( !captures) return params
+
+        for(let len = captures.length,i = 0;i<len;i++){
+            if( this.paramNames[i]){
+                var c = captures[i]
+                params[this.paramNames[i].name] = c ? this.safeDecodeURIComponent(c):c;
+            }
+        }
+
+        return params
+    }
+
+
+
 
     getMiddle(i:number):Function | undefined{
 
@@ -128,12 +182,17 @@ class route implements routeType{
         return async function(ctx:any,next:Function){
             /** 1 if match */
             if(self.match(ctx)){
-                debug('match')
+                debug(`math: ${self.path}<==>${ctx.path}`)
+                ctx.params = self.params(ctx.path, ctx.params)
+                debug('Get Params :')
+                debug( JSON.stringify(ctx.params,null,4))
                 let com = self.compose()
                 await com(ctx,next)
             }
-            else
+            else{
+                debug(`not math!! : ${self.path}<==>${ctx.path}`)
                 return next()
+            }
         }
 
     }

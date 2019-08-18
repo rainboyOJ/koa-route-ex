@@ -46,7 +46,9 @@ const debug = debug_1.default('koa-route-ex');
 class route {
     constructor(url_regx, middles, container) {
         this.Method = 'GET'; //default
-        this.url_regx = path_to_regexp_1.default(url_regx);
+        this.paramNames = [];
+        this.path = url_regx;
+        this.url_regx = path_to_regexp_1.default(url_regx, this.paramNames);
         this.Middles = middles;
         this.container = container;
     }
@@ -62,6 +64,45 @@ class route {
         else {
             this.Middles.push(middles);
         }
+    }
+    /**
+     * @description 返回捕获的params数组
+     * @param path 待捕获的路径
+     * */
+    captures(path) {
+        let match = path.match(this.url_regx);
+        if (match) {
+            return match.slice(1);
+        }
+        return null;
+    }
+    /**
+     * @description Safe decodeURIComponent, won't throw any error.
+     * If `decodeURIComponent` error happen, just return the original value.
+     *
+     * @param text text
+     * @returns  URL decode original string.
+     */
+    safeDecodeURIComponent(text) {
+        try {
+            return decodeURIComponent(text);
+        }
+        catch (e) {
+            return text;
+        }
+    }
+    params(path, existingParams) {
+        var captures = this.captures(path);
+        var params = existingParams || {};
+        if (!captures)
+            return params;
+        for (let len = captures.length, i = 0; i < len; i++) {
+            if (this.paramNames[i]) {
+                var c = captures[i];
+                params[this.paramNames[i].name] = c ? this.safeDecodeURIComponent(c) : c;
+            }
+        }
+        return params;
     }
     getMiddle(i) {
         if (i >= this.Middles.length)
@@ -114,12 +155,17 @@ class route {
         return async function (ctx, next) {
             /** 1 if match */
             if (self.match(ctx)) {
-                debug('match');
+                debug(`math: ${self.path}<==>${ctx.path}`);
+                ctx.params = self.params(ctx.path, ctx.params);
+                debug('Get Params :');
+                debug(JSON.stringify(ctx.params, null, 4));
                 let com = self.compose();
                 await com(ctx, next);
             }
-            else
+            else {
+                debug(`not math!! : ${self.path}<==>${ctx.path}`);
                 return next();
+            }
         };
     }
     /** 运行 */
