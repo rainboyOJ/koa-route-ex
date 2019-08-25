@@ -1,4 +1,5 @@
 import {Key} from 'path-to-regexp/index'
+declare var koaRouteEx : koaRouteEx.routeFactoryType
 declare namespace koaRouteEx {
     export interface anyObj {
         [propName:string]:any
@@ -61,10 +62,12 @@ declare namespace koaRouteEx {
         argument?:anyObj;
     }
 
-    export interface routeFactoryType {
+    interface routeFactoryType {
         container:containerType;
         register(list: Middleware_Function[] | Middleware_Function ,namespace:string | undefined):void;
         create(url_regx:string,middles:[]): routeType;
     }
+
 }
+
 export = koaRouteEx
