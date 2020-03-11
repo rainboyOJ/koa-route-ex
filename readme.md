@@ -1,6 +1,4 @@
-$
-$$
-#$ koa-route-e$x
+# koa-route-e$x
 
 ## 框架
 
