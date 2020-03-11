@@ -243,5 +243,5 @@ class routeFactory implements routeFactoryType{
 
 }
 
-export  = new routeFactory()
+export  = routeFactory
 

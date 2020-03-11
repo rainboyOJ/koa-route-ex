@@ -205,4 +205,4 @@ class routeFactory {
         return new route(url_regx, middles, this.container);
     }
 }
-module.exports = new routeFactory();
+module.exports = routeFactory;

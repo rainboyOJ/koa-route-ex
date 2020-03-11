@@ -1,0 +1,10 @@
+digraph g {
+    node[shape=rect  style=filled fillcolor=white colorscheme=accent8 ];
+    rankdir=LR;
+    a->b->c[label="next()"];
+    c->d[label="not run next(),break" style="dashed" minlen=3]
+    a[label="middle_1"]
+    b[label="middle_2"]
+    c[label="middle_3"]
+    d[label="middle_4"]
+}

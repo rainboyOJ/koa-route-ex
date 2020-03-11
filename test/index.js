@@ -1,4 +1,6 @@
-const RouteIns = require("..")
+const routeIns = require("..")
+
+const RouteIns = new routeIns()
 
 async function add_attr(ctx,next){
     ctx.number = 1
